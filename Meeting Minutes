@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICMG Meeting Minutes</title>
+    <style>
+        body {font-family:Arial,sans-serif;line-height:1.6;margin:0;padding:20px;background-color:#f0f0f0}
+        .container {max-width:600px;margin:0 auto;background-color:white;padding:20px;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,0.1)}
+        .header {text-align:left;margin-bottom:30px;display:flex;justify-content:space-between;align-items:center;padding-bottom:20px;border-bottom:2px solid #2c5282}
+        .header h2 {margin:0;color:#2c5282;text-align:left;font-size:24px}
+        .date-picker {display:flex;align-items:center}
+        .date-picker label {margin-right:10px;margin-bottom:0;white-space:nowrap;color:#444}
+        .date-picker input[type="date"] {padding:5px 10px;border:1px solid #ddd;border-radius:4px;font-size:16px}
+        .section {margin-bottom:20px;padding:15px;border:1px solid #ddd;border-radius:4px}
+        .section-title {font-weight:bold;font-size:18px;margin-bottom:10px;color:#2c5282}
+        .form-group {margin-bottom:10px}
+        label {display:block;margin-bottom:5px;color:#444}
+        input,textarea,select {width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;box-sizing:border-box}
+        textarea {resize:vertical;min-height:50px}
+        select {background-color:white}
+        select:focus {outline:none;border-color:#2c5282}
+        .download-btn {width:100%;padding:10px;background-color:#2c5282;color:white;border:none;border-radius:4px;cursor:pointer;font-size:16px;margin-top:20px}
+        .download-btn:hover {background-color:#2d3748}
+        .attendance-row {display:flex;align-items:center;margin-bottom:15px;gap:10px;padding-right:10px}
+        .attendance-name {flex:1;font-size:16px;color:#444}
+        .attendance-buttons {display:flex;gap:5px;margin-left:auto}
+        .attendance-button {padding:5px 10px;border:1px solid #ddd;border-radius:4px;cursor:pointer;background:white;font-size:12px;transition:all 0.2s;min-width:60px}
+        .attendance-button.present.active {background:#22c55e;color:white;border-color:#22c55e}
+        .attendance-button.absent.active {background:#ef4444;color:white;border-color:#ef4444}
+        .reason-input {display:none;width:150px;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;margin-left:10px}
+        .reason-input::placeholder {color:#999}
+        .pdf-header {display:none}
+        @media print {
+            .pdf-header {display:block;position:relative;width:100%;margin-bottom:30px}
+            .pdf-title {text-align:center;font-size:24px;font-weight:bold;color:#2c5282;margin:0;padding:20px 0}
+            .pdf-date {position:absolute;top:20px;right:20px}
+            .header, .download-btn {display:none !important}
+            .container {margin:0;padding:20px;max-width:none;box-shadow:none;background-color:white}
+            .attendance-button:not(.active) {display:none}
+            .reason-input {display:block !important;border:none;padding:0;width:auto}
+            .reason-input:empty {display:none !important}
+            .attendance-section {page-break-before:always}
+            .quran-section, .education-section, .president-section {page-break-inside:avoid}
+            .section {break-inside:avoid;border:none;padding:0;margin-bottom:30px}
+            .attendance-row {margin-bottom:10px;padding:0}
+            .attendance-buttons {margin-left:20px}
+            body {background:none;padding:0;margin:0}
+            input, textarea, select {border:none;padding:0}
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="pdf-header">
+            <div class="pdf-title">ICMG Meeting Minutes</div>
+            <div class="pdf-date" id="pdfDate"></div>
+        </div>
+        <div class="header">
+            <h2>ICMG Meeting Minutes</h2>
+            <div class="date-picker">
+                <label>Date:</label>
+                <input type="date" id="meetingDate" name="meetingDate" required>
+            </div>
+        </div>
+        <form id="myForm">
+            <div class="section quran-section">
+                <div class="section-title">Quran Recitation</div>
+                <div class="form-group">
+                    <label>Reciter</label>
+                    <input type="text" name="quranReciter" required>
+                </div>
+                <div class="form-group">
+                    <label>Chapter (Surah)</label>
+                    <select name="quranChapter" required>
+                        <option value="">Select a chapter</option>
+                        <option value="1">1. Al-Fatihah</option>
+                        <option value="114">114. An-Nas</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Verse</label>
+                    <textarea name="quranVerse" rows="2"></textarea>
+                </div>
+            </div>
+
+            <div class="section education-section">
+                <div class="section-title">Education Talk</div>
+                <div class="form-group">
+                    <label>Speaker Name</label>
+                    <input type="text" name="eduSpeaker" required>
+                </div>
+                <div class="form-group">
+                    <label>Education Talk</label>
+                    <input type="text" name="eduTalk" required>
+                </div>
+            </div>
+
+            <div class="section president-section">
+                <div class="section-title">President Talk</div>
+                <div class="form-group">
+                    <label>President Talk</label>
+                    <textarea name="presidentTalk" rows="2" required></textarea>
+                </div>
+            </div>
+
+            <div class="section attendance-section">
+                <div class="section-title">Attendance</div>
+                <div id="attendanceList">
+                    <div class="attendance-row">
+                        <div class="attendance-name">Yasin Cakir</div>
+                        <div class="attendance-buttons">
+                            <button type="button" class="attendance-button present active" onclick="markAttendance(this,'present',0)">Present</button>
+                            <button type="button" class="attendance-button absent" onclick="markAttendance(this,'absent',0)">Absent</button>
+                        </div>
+                        <input type="text" class="reason-input" placeholder="Reason">
+                    </div>
+                    <div class="attendance-row">
+                        <div class="attendance-name">Hayreddin Ozdogan</div>
+                        <div class="attendance-buttons">
+                            <button type="button" class="attendance-button present active" onclick="markAttendance(this,'present',1)">Present</button>
+                            <button type="button" class="attendance-button absent" onclick="markAttendance(this,'absent',1)">Absent</button>
+                        </div>
+                        <input type="text" class="reason-input" placeholder="Reason">
+                    </div>
+                    <div class="attendance-row">
+                        <div class="attendance-name">Mehmet Ali Vatan</div>
+                        <div class="attendance-buttons">
+                            <button type="button" class="attendance-button present active" onclick="markAttendance(this,'present',2)">Present</button>
+                            <button type="button" class="attendance-button absent" onclick="markAttendance(this,'absent',2)">Absent</button>
+                        </div>
+                        <input type="text" class="reason-input" placeholder="Reason">
+                    </div>
+                    <div class="attendance-row">
+                        <div class="attendance-name">Dilhan Koyuncu</div>
+                        <div class="attendance-buttons">
+                            <button type="button" class="attendance-button present active" onclick="markAttendance(this,'present',3)">Present</button>
+                            <button type="button" class="attendance-button absent" onclick="markAttendance(this,'absent',3)">Absent</button>
+                        </div>
+                        <input type="text" class="reason-input" placeholder="Reason">
+                    </div>
+                    <div class="attendance-row">
+                        <div class="attendance-name">Yunus Sula</div>
+                        <div class="attendance-buttons">
+                            <button type="button" class="attendance-button present active" onclick="markAttendance(this,'present',4)">Present</button>
+                            <button type="button" class="attendance-button absent" onclick="markAttendance(this,'absent',4)">Absent</button>
+                        </div>
+                        <input type="text" class="reason-input" placeholder="Reason">
+                    </div>
+                    <div class="attendance-row">
+                        <div class="attendance-name">Mert Yildiz</div>
+                        <div class="attendance-buttons">
+                            <button type="button" class="attendance-button present active" onclick="markAttendance(this,'present',5)">Present</button>
+                            <button type="button" class="attendance-button absent" onclick="markAttendance(this,'absent',5)">Absent</button>
+                        </div>
+                        <input type="text" class="reason-input" placeholder="Reason">
+                    </div>
+                    <div class="attendance-row">
+                        <div class="attendance-name">Tarik Yalcinkaya</div>
+                        <div class="attendance-buttons">
+                            <button type="button" class="attendance-button present active" onclick="markAttendance(this,'present',6)">Present</button>
+                            <button type="button" class="attendance-button absent" onclick="markAttendance(this,'absent',6)">Absent</button>
+                        </div>
+                        <input type="text" class="reason-input" placeholder="Reason">
+                    </div>
+                    <div class="attendance-row">
+                        <div class="attendance-name">Zane Al Bikai</div>
+                        <div class="attendance-buttons">
+                            <button type="button" class="attendance-button present active" onclick="markAttendance(this,'present',7)">Present</button>
+                            <button type="button" class="attendance-button absent" onclick="markAttendance(this,'absent',7)">Absent</button>
+                        </div>
+                        <input type="text" class="reason-input" placeholder="Reason">
+                    </div>
+                    <div class="attendance-row">
+                        <div class="attendance-name">Yusuf Cakir</div>
+                        <div class="attendance-buttons">
+                            <button type="button" class="attendance-button present active" onclick="markAttendance(this,'present',8)">Present</button>
+                            <button type="button" class="attendance-button absent" onclick="markAttendance(this,'absent',8)">Absent</button>
+                        </div>
+                        <input type="text" class="reason-input" placeholder="Reason">
+                    </div>
+                    <div class="attendance-row">
+                        <div class="attendance-name">Omar Ali</div>
+                        <div class="attendance-buttons">
+                            <button type="button" class="attendance-button present active" onclick="markAttendance(this,'present',9)">Present</button>
+                            <button type="button" class="attendance-button absent" onclick="markAttendance(this,'absent',9)">Absent</button>
+                        </div>
+                        <input type="text" class="reason-input" placeholder="Reason">
+                    </div>
+                    <div class="attendance-row">
+                        <div class="attendance-name">Jafaar Hamdan</div>
+                        <div class="attendance-buttons">
+                            <button type="button" class="attendance-button present active" onclick="markAttendance(this,'present',10)">Present</button>
+                            <button type="button" class="attendance-button absent" onclick="markAttendance(this,'absent',10)">Absent</button>
+                        </div>
+                        <input type="text" class="reason-input" placeholder="Reason">
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" onclick="generatePDF()" class="download-btn">Download as PDF</button>
+        </form>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        window.onload=function(){
+            const today=new Date();
+            const year=today.getFullYear();
+            const month=String(today.getMonth()+1).padStart(2,'0');
+            const day=String(today.getDate()).padStart(2,'0');
+            document.getElementById('meetingDate').value=`${year}-${month}-${day}`;
+            const options={year:'numeric',month:'long',day:'numeric'};
+            document.getElementById('pdfDate').textContent=today.toLocaleDateString('en-US',options);
+        }
+        document.getElementById('meetingDate').addEventListener('change',function(){
+            const selectedDate=new Date(this.value);
+            const options={year:'numeric',month:'long',day:'numeric'};
+            document.getElementById('pdfDate').textContent=selectedDate.toLocaleDateString('en-US',options);
+        });
+        function markAttendance(button,status,index){
+            const row=button.closest('.attendance-row');
+            const presentBtn=row.querySelector('.present');
+            const absentBtn=row.querySelector('.absent');
+            const reasonInput=row.querySelector('.reason-input');
+            presentBtn.classList.remove('active');
+            absentBtn.classList.remove('active');
+            button.classList.add('active');
+            if(status==='absent'){
+                reasonInput.style.display='block';
+            }else{
+                reasonInput.style.display='none';
+                reasonInput.value='';
+            }
+        }
+        function generatePDF(){
+            const element=document.querySelector('.container');
+            const opt={
+                margin:[10,10,10,10],
+                filename:'ICMG-meeting-minutes.pdf',
+                image:{type:'jpeg',quality:1},
+                html2canvas:{scale:2,useCORS:true,logging:true,letterRendering:true},
+                jsPDF:{unit:'mm',format:'a4',orientation:'portrait',compress:true}
+            };
+            const reasonInputs=document.querySelectorAll('.reason-input');
+            reasonInputs.forEach(input=>{
+                if(!input.value){input.style.display='none';}
+            });
+            html2pdf().set(opt).from(element).save().then(()=>{
+                reasonInputs.forEach(input=>{
+                    const row=input.closest('.attendance-row');
+                    const absentBtn=row.querySelector('.absent');
+                    if(absentBtn.classList.contains('active')){
+                        input.style.display='block';
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>
